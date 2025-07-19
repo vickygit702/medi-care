@@ -13,11 +13,6 @@ export default function LoginForm() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    console.log("user changed:", user); // Check if this logs after login
-    if (user) navigate(`/patient/${user.id}/dashboard`);
-  }, [user, navigate]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -28,12 +23,11 @@ export default function LoginForm() {
         email,
         password,
       });
-      console.log("Login success, current user:", user); // Check if updated
+      console.log("Login success, current user:", user);
 
       if (!success) {
         setError("Login failed - please try again");
       }
-      // Navigation is now handled by the useEffect above
     } catch (err) {
       console.error("Login error:", err);
       setError(
@@ -43,6 +37,10 @@ export default function LoginForm() {
       setLoading(false);
     }
   };
+  useEffect(() => {
+    console.log("user updated:", user);
+    if (user) navigate(`/${user.role}/${user.id}/dashboard`);
+  }, [user?.id]);
 
   return (
     <div className="max-w-md mx-auto mt-10">

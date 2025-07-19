@@ -17,12 +17,9 @@ const authSlice = createSlice({
       state.error = null;
     },
     loginSuccess: (state, action: PayloadAction<User>) => {
-      return {
-        // Return a new state object
-        ...state,
-        user: action.payload, // New user reference
-        isLoading: false,
-      };
+      state.user = action.payload;
+      state.isLoading = false;
+      state.error = null;
     },
     loginFailure: (state, action: PayloadAction<string>) => {
       state.error = action.payload;

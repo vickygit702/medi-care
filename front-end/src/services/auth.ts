@@ -1,10 +1,10 @@
 import { supabase } from "../lib/supabase";
-import type { AppDispatch } from "../stores/store";
+import { loginStart, loginSuccess } from "../stores/auth/authSlice";
 import type {
   LoginCredentials,
   RegisterCredentials,
 } from "../stores/auth/types";
-import { loginStart, loginSuccess } from "../stores/auth/authSlice";
+import type { AppDispatch } from "../stores/store";
 
 export const authService = {
   async login(
@@ -49,7 +49,7 @@ export const authService = {
   async register(
     dispatch: AppDispatch,
     credentials: RegisterCredentials
-  ): Promise<boolean> {
+  ): Promise<{ success: boolean }> {
     try {
       dispatch({ type: "auth/registerStart" });
 
@@ -81,12 +81,12 @@ export const authService = {
         },
       });
 
-      return true;
+      return { success: true };
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Registration failed";
       dispatch({ type: "auth/registerFailure", payload: message });
-      return false;
+      return { success: false };
     }
   },
 

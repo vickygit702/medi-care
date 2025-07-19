@@ -1,12 +1,11 @@
-// src/components/auth/RegisterForm.tsx
 import { useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
-export default function RegisterForm() {
-  const [searchParams] = useSearchParams();
+function RegisterForm() {
+  const [searchparams] = useSearchParams();
   const navigate = useNavigate();
-  const role = searchParams.get("role");
+  const role = searchparams.get("role");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,7 +32,7 @@ export default function RegisterForm() {
           },
         },
       });
-      console.log("Auth response:", authData);
+      console.log("Auth response:", authData.user);
       if (authError) throw authError;
       console.log("not autherror");
       if (authData.user?.identities?.length === 0) {
@@ -58,7 +57,7 @@ export default function RegisterForm() {
       if (profileError) throw profileError;
 
       // 3. Redirect to appropriate dashboard
-      navigate(`/${role}/${authData.user.id}`);
+      navigate(`/${role}/${authData.user.id}/dashboard`);
     } catch (err) {
       console.error("Registration error:", err);
       setError(
@@ -70,7 +69,6 @@ export default function RegisterForm() {
       setLoading(false);
     }
   };
-
   return (
     <div className="max-w-md mx-auto mt-10">
       <h2 className="text-xl font-bold mb-4">Register as {role}</h2>
@@ -124,3 +122,5 @@ export default function RegisterForm() {
     </div>
   );
 }
+
+export default RegisterForm;

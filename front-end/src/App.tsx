@@ -1,9 +1,7 @@
 import {
   createBrowserRouter,
-  createRoutesFromElements,
   RouterProvider,
   Navigate,
-  Route,
 } from "react-router-dom";
 import { useSelector } from "react-redux";
 import type { RootState } from "./stores/store";
@@ -11,8 +9,8 @@ import RoleSelection from "./components/auth/RoleSelection";
 import NotFound from "./components/auth/NotFound";
 import LoginForm from "./components/auth/LoginForm";
 import RegisterForm from "./components/auth/RegisterForm";
-import PatientLayout from "./pages/Patient/PatientLayout";
-import CareTakerLayout from "./pages/Caretaker/CareTakerLayout";
+import CommonLayout from "./pages/Layout";
+
 import PatientDashboard from "./pages/Patient/Dashboard";
 import CaretakerDashboard from "./pages/Caretaker/Dashboard";
 import { useEffect } from "react";
@@ -29,57 +27,58 @@ function App() {
     authService.checkAuth(dispatch);
   }, [dispatch]);
 
-  const router = createBrowserRouter(
-    createRoutesFromElements(
-      <>
-        {/* Public routes */}
-        <Route path="/select-role" element={<RoleSelection />} />
-        <Route
-          path="/login"
-          element={
-            !user ? <LoginForm /> : <Navigate to={`/${user.role}`} replace />
-          }
-        />
-        <Route
-          path="/register"
-          element={
-            !user ? <RegisterForm /> : <Navigate to={`/${user.role}`} replace />
-          }
-        />
+  const router = createBrowserRouter([
+    // Public routes
+    {
+      path: "/select-role",
+      element: <RoleSelection />,
+    },
+    {
+      path: "/login",
+      element: <LoginForm />,
+    },
+    {
+      path: "/register",
+      element: <RegisterForm />,
+    },
 
-        {/* Protected routes */}
-        <Route path="/patient/:id/dashboard" element={<PatientLayout />} />
+    {
+      path: "/patient/:id/dashboard",
+      element:
+        user?.role === "patient" ? <CommonLayout /> : <Navigate to="/login" />,
+      children: [
+        {
+          index: true,
+          element: <PatientDashboard />,
+        },
+      ],
+    },
+    {
+      path: "/caretaker/:id/dashboard",
+      element:
+        user?.role === "caretaker" ? (
+          <CommonLayout />
+        ) : (
+          <Navigate to="/login" />
+        ),
+      children: [
+        {
+          index: true,
+          element: <CaretakerDashboard />,
+        },
+        {
+          path: "dashboard",
+          element: <CaretakerDashboard />,
+        },
+      ],
+    },
 
-        <Route
-          path="/caretaker"
-          element={
-            user?.role === "caretaker" ? (
-              <CareTakerLayout />
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
-        >
-          <Route index element={<CaretakerDashboard />} />
-          <Route path="dashboard" element={<CaretakerDashboard />} />
-        </Route>
-
-        {/* Redirects */}
-        <Route
-          path="/"
-          element={
-            <Navigate
-              to={user ? `/${user.role}/dashboard` : "/select-role"}
-              replace
-            />
-          }
-        />
-
-        {/* Fallback */}
-        <Route path="*" element={<NotFound />} />
-      </>
-    )
-  );
+    // Fallback
+    {
+      path: "*",
+      element: <NotFound />,
+    },
+  ]);
 
   return <RouterProvider router={router} />;
 }
