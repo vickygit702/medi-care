@@ -1,104 +1,271 @@
+// import { useSelector } from "react-redux";
+// import { Card } from "../../components/ui/Card";
+// import {
+//   User,
+//   Calendar,
+//   Camera,
+//   Check,
+//   ChevronLeft,
+//   ChevronRight,
+// } from "lucide-react";
+// import type { RootState } from "../../stores/store";
+// import NavigationSystem from "../../components/NavigationSystem";
+
+// const Dashboard = () => {
+//   const { user } = useSelector((state: RootState) => state.auth);
+//   const calendarDays = [
+//     // Previous month days
+//     29, 30,
+//     // Current month days (July 2025)
+//     1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
+//     22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+//     // Next month days
+//     1, 2,
+//   ];
+
+//   const medicationStatus: { [key: string]: string } = {
+//     1: "missed",
+//     2: "missed",
+//     4: "taken",
+//     5: "taken",
+//     6: "missed",
+//     7: "missed",
+//     8: "missed",
+//     9: "missed",
+//     10: "missed",
+//     11: "missed",
+//     12: "missed",
+//     13: "taken",
+//     14: "missed",
+//     15: "missed",
+//     16: "missed",
+//     17: "missed",
+//     18: "missed",
+//     19: "today",
+//   };
+
+//   const getStatusColor = (day: number, index: number) => {
+//     if (index < 2 || index > 32) return ""; // Previous/next month days
+//     const status = medicationStatus[String(day)];
+//     if (status === "taken") return "bg-green-500";
+//     if (status === "missed") return "bg-red-500";
+//     if (status === "today") return "bg-blue-500";
+//     return "";
+//   };
+
+//   return (
+//     <>
+//       <div className="flex flex-col gap-6 h-full ">
+//         {/* First div - takes full available width */}
+//         <div className="flex-1 space-y-6">
+//           {/* Gradient Header Card */}
+//           <Card className="p-6 bg-gradient-to-r from-blue-500 via-teal-500 to-green-500 text-white border-0">
+//             <div className="mb-6">
+//               <div className="flex items-center space-x-2 mb-2">
+//                 <User className="w-6 h-6" />
+//                 <h2 className="text-2xl font-bold">{user?.role}'s Dashboard</h2>
+//               </div>
+//               <p className="text-blue-100">
+//                 Monitoring Eleanor Thompson's medication adherence
+//               </p>
+//             </div>
+
+//             {/* Stats cards */}
+//             <div className="grid grid-cols-4 gap-4">
+//               <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+//                 <p className="text-3xl font-bold mb-1">0</p>
+//                 <p className="text-blue-100 text-sm">Day Streak</p>
+//               </div>
+
+//               <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+//                 <p className="text-3xl font-bold mb-1">X</p>
+//                 <p className="text-blue-100 text-sm">Todays Status</p>
+//               </div>
+
+//               <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+//                 <p className="text-3xl font-bold mb-1">0%</p>
+//                 <p className="text-blue-100 text-sm">Monthly Rate</p>
+//               </div>
+
+//               <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+//                 <p className="text-3xl font-bold mb-1">0%</p>
+//                 <p className="text-blue-100 text-sm">Monthly Rate</p>
+//               </div>
+//             </div>
+//           </Card>
+
+//           {/* Today's Medication Section */}
+//           <NavigationSystem />
+//         </div>
+//       </div>
+//     </>
+//   );
+// };
+
+// export default Dashboard;
+
 import { useSelector } from "react-redux";
 import { Card } from "../../components/ui/Card";
-import {
-  User,
-  Calendar,
-  Camera,
-  Check,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { User, ChevronLeft, ChevronRight } from "lucide-react";
 import type { RootState } from "../../stores/store";
 import NavigationSystem from "../../components/NavigationSystem";
+import { useEffect, useState } from "react";
+import { format } from "date-fns";
 
 const Dashboard = () => {
   const { user } = useSelector((state: RootState) => state.auth);
-  const calendarDays = [
-    // Previous month days
-    29, 30,
-    // Current month days (July 2025)
-    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-    22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
-    // Next month days
-    1, 2,
-  ];
+  const { caretakerData } = useSelector((state: RootState) => state.info);
+  const [selectedPatient, setSelectedPatient] = useState<string | null>(null);
+  const [currentDate] = useState(new Date());
+  const [currentMonth, setCurrentMonth] = useState(currentDate.getMonth());
+  const [currentYear, setCurrentYear] = useState(currentDate.getFullYear());
 
-  const medicationStatus: { [key: string]: string } = {
-    1: "missed",
-    2: "missed",
-    4: "taken",
-    5: "taken",
-    6: "missed",
-    7: "missed",
-    8: "missed",
-    9: "missed",
-    10: "missed",
-    11: "missed",
-    12: "missed",
-    13: "taken",
-    14: "missed",
-    15: "missed",
-    16: "missed",
-    17: "missed",
-    18: "missed",
-    19: "today",
+  // Set first patient as selected by default
+  useEffect(() => {
+    if (caretakerData?.length && !selectedPatient) {
+      setSelectedPatient(caretakerData[0].patient_id);
+    }
+  }, [caretakerData, selectedPatient]);
+
+  // Get currently selected patient data
+  const currentPatient = caretakerData?.find(
+    (patient) => patient.patient_id === selectedPatient
+  );
+
+  // Calculate overall stats for all patients
+  const calculateOverallStats = () => {
+    if (!caretakerData)
+      return { streak: 0, monthlyRate: 0, todayStatus: false };
+
+    const streaks = caretakerData.map((p) => p.streak);
+    const todayStatuses = caretakerData.map((p) => p.today_status);
+
+    // Calculate average streak
+    const avgStreak = Math.round(
+      streaks.reduce((sum, val) => sum + val, 0) / streaks.length
+    );
+
+    // Calculate monthly rate
+    const monthlyRates = caretakerData.map((patient) => {
+      const currentMonthDetails =
+        patient.medication_taken_details?.filter((detail) =>
+          detail.date.startsWith(
+            `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-`
+          )
+        ) || [];
+      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+      return Math.round((currentMonthDetails.length / daysInMonth) * 100);
+    });
+
+    const avgMonthlyRate = Math.round(
+      monthlyRates.reduce((sum, val) => sum + val, 0) / monthlyRates.length
+    );
+
+    // Calculate today's status (percentage of patients who took meds today)
+    const todayTaken = todayStatuses.filter((status) => status).length;
+    const todayPercentage = Math.round(
+      (todayTaken / todayStatuses.length) * 100
+    );
+
+    return {
+      streak: avgStreak,
+      monthlyRate: avgMonthlyRate,
+      todayPercentage,
+    };
   };
 
-  const getStatusColor = (day: number, index: number) => {
-    if (index < 2 || index > 32) return ""; // Previous/next month days
-    const status = medicationStatus[String(day)];
-    if (status === "taken") return "bg-green-500";
-    if (status === "missed") return "bg-red-500";
-    if (status === "today") return "bg-blue-500";
-    return "";
-  };
+  const overallStats = calculateOverallStats();
 
   return (
-    <>
-      <div className="flex flex-col gap-6 h-full ">
-        {/* First div - takes full available width */}
-        <div className="flex-1 space-y-6">
-          {/* Gradient Header Card */}
-          <Card className="p-6 bg-gradient-to-r from-blue-500 via-teal-500 to-green-500 text-white border-0">
-            <div className="mb-6">
-              <div className="flex items-center space-x-2 mb-2">
-                <User className="w-6 h-6" />
-                <h2 className="text-2xl font-bold">{user?.role}'s Dashboard</h2>
-              </div>
-              <p className="text-blue-100">
-                Monitoring Eleanor Thompson's medication adherence
+    <div className="flex flex-col gap-6 h-full">
+      <div className="flex-1 space-y-6">
+        {/* Gradient Header Card */}
+        <Card className="p-6 bg-gradient-to-r from-blue-500 via-teal-500 to-green-500 text-white border-0">
+          <div className="mb-6">
+            <div className="flex items-center space-x-2 mb-2">
+              <User className="w-6 h-6" />
+              <h2 className="text-2xl font-bold">user's Caretaker Dashboard</h2>
+            </div>
+            <p className="text-blue-100">
+              {caretakerData?.length
+                ? `Monitoring ${caretakerData.length} patient${
+                    caretakerData.length > 1 ? "s" : ""
+                  }`
+                : "No patients assigned"}
+            </p>
+          </div>
+
+          {/* Stats cards */}
+          <div className="grid grid-cols-4 gap-4">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+              <p className="text-3xl font-bold mb-1">{overallStats.streak}</p>
+              <p className="text-blue-100 text-sm">Avg. Day Streak</p>
+            </div>
+
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+              <p className="text-3xl font-bold mb-1">
+                {overallStats.todayPercentage}%
               </p>
+              <p className="text-blue-100 text-sm">Today's Compliance</p>
             </div>
 
-            {/* Stats cards */}
-            <div className="grid grid-cols-4 gap-4">
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-                <p className="text-3xl font-bold mb-1">0</p>
-                <p className="text-blue-100 text-sm">Day Streak</p>
-              </div>
-
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-                <p className="text-3xl font-bold mb-1">X</p>
-                <p className="text-blue-100 text-sm">Todays Status</p>
-              </div>
-
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-                <p className="text-3xl font-bold mb-1">0%</p>
-                <p className="text-blue-100 text-sm">Monthly Rate</p>
-              </div>
-
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-                <p className="text-3xl font-bold mb-1">0%</p>
-                <p className="text-blue-100 text-sm">Monthly Rate</p>
-              </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+              <p className="text-3xl font-bold mb-1">
+                {overallStats.monthlyRate}%
+              </p>
+              <p className="text-blue-100 text-sm">Avg. Monthly Rate</p>
             </div>
-          </Card>
 
-          {/* Today's Medication Section */}
-          <NavigationSystem />
-        </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+              <p className="text-3xl font-bold mb-1">
+                {caretakerData?.length || 0}
+              </p>
+              <p className="text-blue-100 text-sm">Patients</p>
+            </div>
+          </div>
+        </Card>
+
+        {/* Patient selector dropdown */}
+        {(caretakerData?.length ?? 0) > 1 && (
+          <div className="bg-white p-4 rounded-lg border border-gray-200">
+            <label
+              htmlFor="patient-select"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Select Patient
+            </label>
+            <select
+              id="patient-select"
+              value={selectedPatient || ""}
+              onChange={(e) => setSelectedPatient(e.target.value)}
+              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            >
+              {(caretakerData ?? []).map((patient) => (
+                <option key={patient.patient_id} value={patient.patient_id}>
+                  Patient {patient.patient_id.substring(0, 8)}...
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* Navigation System with patient data */}
+        <NavigationSystem
+          currentPatient={currentPatient}
+          currentMonth={currentMonth}
+          currentYear={currentYear}
+          onMonthChange={(direction) => {
+            if (direction === "prev") {
+              setCurrentMonth((prev) => (prev === 0 ? 11 : prev - 1));
+              if (currentMonth === 0) setCurrentYear((prev) => prev - 1);
+            } else {
+              setCurrentMonth((prev) => (prev === 11 ? 0 : prev + 1));
+              if (currentMonth === 11) setCurrentYear((prev) => prev + 1);
+            }
+          }}
+        />
       </div>
-    </>
+    </div>
   );
 };
 

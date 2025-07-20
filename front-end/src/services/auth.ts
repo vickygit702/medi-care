@@ -1,47 +1,51 @@
 import { supabase } from "../lib/supabase";
-import { loginStart, loginSuccess } from "../stores/auth/authSlice";
+import {
+  loginFailure,
+  loginStart,
+  loginSuccess,
+} from "../stores/auth/authSlice";
 import type {
   LoginCredentials,
   RegisterCredentials,
 } from "../stores/auth/types";
+import { fetchUserInfo } from "../stores/infoSlice";
 import type { AppDispatch } from "../stores/store";
 
 export const authService = {
   async login(
     dispatch: AppDispatch,
-    credentials: LoginCredentials
-  ): Promise<{ success: boolean }> {
-    dispatch(loginStart());
+    credentials: { email: string; password: string }
+  ) {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: credentials.email,
-        password: credentials.password,
-      });
-
-      if (error) throw error;
-      if (!data.session) throw new Error("No session created");
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", data.user.id)
-        .single();
-      console.log("user data:", data.user);
-
-      if (!profile) throw new Error("User profile not found");
-
-      dispatch(
-        loginSuccess({
-          id: data.user.id,
-          email: data.user.email!,
-          role: profile.role,
-        })
+      const { data, error } = await supabase.auth.signInWithPassword(
+        credentials
       );
 
-      return { success: true };
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Login failed";
-      dispatch({ type: "auth/loginFailure", payload: message });
+      if (error) throw error;
+
+      if (data?.user) {
+        // Get user profile from profiles table
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", data.user.id)
+          .single();
+
+        if (!profile) throw new Error("User profile not found");
+
+        dispatch(loginSuccess(profile));
+
+        // Fetch appropriate info based on role
+        dispatch(fetchUserInfo(data.user.id, profile.role));
+
+        return { success: true };
+      }
+
+      return { success: false };
+    } catch (err) {
+      dispatch(
+        loginFailure(err instanceof Error ? err.message : "Login failed")
+      );
       return { success: false };
     }
   },

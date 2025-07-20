@@ -1,6 +1,16 @@
-import { User } from "lucide-react";
+import { useSelector, useDispatch } from "react-redux";
+import type { RootState } from "../stores/store";
+import { authService } from "../services/auth";
+import { Button } from "./ui/Button";
 
 const Header = () => {
+  const dispatch = useDispatch();
+  const { user } = useSelector((state: RootState) => state.auth);
+
+  const handleLogout = async () => {
+    await authService.logout(dispatch);
+    // Optionally redirect to login page
+  };
   return (
     <>
       <div className="flex justify-between items-center p-6 bg-white">
@@ -12,13 +22,12 @@ const Header = () => {
             <h1 className="text-xl font-bold text-gray-900">
               MediCare Companion
             </h1>
-            <p className="text-sm text-gray-600">Patient View</p>
+            <p className="text-sm text-gray-600">{user?.role} View</p>
           </div>
+          <Button variant="outline" size="sm" onClick={handleLogout}>
+            Logout
+          </Button>
         </div>
-        <button className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 ">
-          <User className="w-4 h-4" />
-          <span className="text-sm">Switch to Caretaker</span>
-        </button>
       </div>
     </>
   );
