@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../stores/store";
 import { authService } from "../../services/auth";
 import { useNavigate } from "react-router-dom";
+import { sanitizeEmail, sanitizeInput } from "../../utils/sanitize";
 
 export default function LoginForm() {
   const { user } = useSelector((state: RootState) => state.auth);
@@ -33,9 +34,11 @@ export default function LoginForm() {
     setLoading(true);
 
     try {
+      const sanitizedEmail = sanitizeEmail(email);
+      const sanitizedPassword = sanitizeInput(password);
       const { success } = await authService.login(dispatch, {
-        email,
-        password,
+        email: sanitizedEmail,
+        password: sanitizedPassword,
       });
 
       if (!success) {

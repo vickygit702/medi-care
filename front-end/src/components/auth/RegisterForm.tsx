@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { supabase } from "../../lib/supabase";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import {
+  sanitizeEmail,
+  sanitizeInput,
+  validatePassword,
+} from "../../utils/sanitize";
 
 function RegisterForm() {
   const [searchparams] = useSearchParams();
@@ -23,10 +28,14 @@ function RegisterForm() {
     setLoading(true);
 
     try {
+      const sanitizedEmail = sanitizeEmail(email);
+      const sanitizedUsername = sanitizeInput(username);
+      validatePassword(password);
+      const sanitizedPassword = sanitizeInput(password);
       // 1. Sign up with Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
+        email: sanitizedEmail,
+        password: sanitizedPassword,
         options: {
           data: {
             role: role,
@@ -50,9 +59,9 @@ function RegisterForm() {
       // 2. Store additional user data in profiles table
       const { error: profileError } = await supabase.from("profiles").insert({
         id: authData.user.id,
-        email,
+        email: sanitizedEmail,
         role,
-        username,
+        username: sanitizedUsername,
         updated_at: new Date().toISOString(),
       });
 
