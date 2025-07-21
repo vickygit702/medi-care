@@ -24,10 +24,15 @@ const Header = () => {
             </h1>
             <p className="text-sm text-gray-600">{user?.role} View</p>
           </div>
-          <Button variant="outline" size="sm" onClick={handleLogout}>
-            Logout
-          </Button>
         </div>
+        <Button
+          variant="outline"
+          className="hover:bg-black hover:text-white"
+          size="sm"
+          onClick={handleLogout}
+        >
+          Logout
+        </Button>
       </div>
     </>
   );

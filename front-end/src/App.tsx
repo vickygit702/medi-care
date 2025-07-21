@@ -22,15 +22,17 @@ function App() {
   const { user } = useSelector((state: RootState) => state.auth);
   const dispatch = useDispatch<AppDispatch>();
 
-  // Check auth state on initial load
   useEffect(() => {
     authService.checkAuth(dispatch);
   }, [dispatch]);
 
   const router = createBrowserRouter([
-    // Public routes
     {
       path: "/select-role",
+      element: <RoleSelection />,
+    },
+    {
+      path: "/",
       element: <RoleSelection />,
     },
     {
@@ -43,7 +45,7 @@ function App() {
     },
 
     {
-      path: "/patient/:id/dashboard",
+      path: "/patient/dashboard",
       element:
         user?.role === "patient" ? <CommonLayout /> : <Navigate to="/login" />,
       children: [
@@ -54,7 +56,7 @@ function App() {
       ],
     },
     {
-      path: "/caretaker/:id/dashboard",
+      path: "/caretaker/dashboard",
       element:
         user?.role === "caretaker" ? (
           <CommonLayout />

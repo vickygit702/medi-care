@@ -1,5 +1,6 @@
 export interface User {
   id: string;
+  username: string;
   email: string;
   role: "patient" | "caretaker";
 }
@@ -15,6 +16,9 @@ export type LoginCredentials = {
   password: string;
 };
 
-export type RegisterCredentials = LoginCredentials & {
-  role: "patient" | "caretaker";
+export type RegisterCredentials = {
+  email: string;
+  password: string;
+  role: string;
+  username: string;
 };

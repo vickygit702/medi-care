@@ -40,17 +40,18 @@ const Dashboard = () => {
       (_, i) => prevMonthDays - firstDayOfMonth + i + 1
     );
 
-    // Current month days
+    // Current month days (all days)
     const currentDays = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
-    // Next month days (to fill the grid)
-    const totalCells = Math.ceil((firstDayOfMonth + daysInMonth) / 7) * 7;
-    const nextDays = Array.from(
-      { length: totalCells - (firstDayOfMonth + daysInMonth) },
-      (_, i) => i + 1
-    );
+    // Calculate total days shown (prev + current)
+    const daysShown = prevDays.length + currentDays.length;
+    // Calculate cells needed to complete the last week (if any)
+    const remainingCells = daysShown % 7 === 0 ? 0 : 7 - (daysShown % 7);
 
-    setCalendarDays([...prevDays, ...currentDays, ...nextDays]);
+    // Don't add next month days - just add empty cells if needed
+    const emptyCells = Array.from({ length: remainingCells }, () => 0);
+
+    setCalendarDays([...prevDays, ...currentDays, ...emptyCells]);
   }, [currentMonth, currentYear]);
 
   // Handle file selection
@@ -224,7 +225,7 @@ const Dashboard = () => {
             <div className="flex items-center space-x-2 mb-2">
               <User className="w-6 h-6" />
               <h2 className="text-2xl font-bold">
-                Good {getTimeOfDayGreeting()}, user name!
+                Good {getTimeOfDayGreeting()}, {user?.username}!
               </h2>
             </div>
             <p className="text-blue-100">
@@ -405,36 +406,59 @@ const Dashboard = () => {
                   currentYear,
                   currentMonth
                 );
-                const daysInMonth = getDaysInMonth(currentYear, currentMonth);
-                const isCurrentMonth =
-                  index >= firstDayOfMonth &&
-                  index < firstDayOfMonth + daysInMonth;
+                const isPrevMonth = index < firstDayOfMonth;
+                const isCurrentMonth = index >= firstDayOfMonth && day !== 0;
+
                 const isToday =
                   isCurrentMonth &&
                   day === currentDate.getDate() &&
                   currentMonth === currentDate.getMonth() &&
                   currentYear === currentDate.getFullYear();
-                const status = getMedicationStatus(day, isCurrentMonth);
+
+                const isPastDate =
+                  isCurrentMonth &&
+                  (currentYear < currentDate.getFullYear() ||
+                    (currentYear === currentDate.getFullYear() &&
+                      currentMonth < currentDate.getMonth()) ||
+                    (currentYear === currentDate.getFullYear() &&
+                      currentMonth === currentDate.getMonth() &&
+                      day <= currentDate.getDate()));
+
+                const isFutureDate = isCurrentMonth && !isPastDate && !isToday;
+
+                // Only show status for past dates (not today or future)
+                const status = isPastDate
+                  ? getMedicationStatus(day, true)
+                  : null;
 
                 return (
-                  <div key={index} className="relative">
-                    <div
-                      className={`text-center text-sm py-2 rounded-lg ${
-                        !isCurrentMonth
-                          ? "text-gray-400"
-                          : isToday
-                          ? "bg-blue-600 text-white font-medium"
-                          : "text-gray-900"
-                      }`}
-                    >
-                      {day}
-                    </div>
-                    {status && (
-                      <div
-                        className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 w-2 h-2 rounded-full ${
-                          status === "taken" ? "bg-green-500" : "bg-red-500"
-                        }`}
-                      ></div>
+                  <div key={index} className="relative h-10">
+                    {day !== 0 ? (
+                      <>
+                        <div
+                          className={`text-center text-sm py-2 rounded-lg h-full flex items-center justify-center ${
+                            isPrevMonth
+                              ? "text-gray-400"
+                              : isToday
+                              ? "bg-blue-600 text-white font-medium"
+                              : isFutureDate
+                              ? "text-gray-400 cursor-not-allowed"
+                              : "text-gray-900"
+                          }`}
+                        >
+                          {day}
+                        </div>
+                        {/* Only show status indicator for past dates */}
+                        {status && isPastDate && (
+                          <div
+                            className={`absolute bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 rounded-full ${
+                              status === "taken" ? "bg-green-500" : "bg-red-500"
+                            }`}
+                          ></div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="h-full"></div> // Empty cell for alignment
                     )}
                   </div>
                 );

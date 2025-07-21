@@ -1,12 +1,13 @@
 // src/stores/infoSlice.ts
 import { createSlice } from "@reduxjs/toolkit";
 import type { AppThunk } from "../stores/store";
-import type { Dispatch, PayloadAction } from "@reduxjs/toolkit";
+import type { PayloadAction } from "@reduxjs/toolkit";
 import { supabase } from "../lib/supabase";
 
 interface Medication {
   name: string;
   dosage: string;
+  time: "Morning" | "Afternoon" | "Night";
 }
 
 interface TakenDetail {
@@ -18,6 +19,7 @@ export interface PatientInfo {
   id: number;
   patient_id: string;
   caretaker_id: string | null;
+  patient_name: string;
   medications_list: Medication[];
   medication_taken_details: TakenDetail[];
   streak: number;

@@ -1,13 +1,6 @@
 import { supabase } from "../lib/supabase";
-import {
-  loginFailure,
-  loginStart,
-  loginSuccess,
-} from "../stores/auth/authSlice";
-import type {
-  LoginCredentials,
-  RegisterCredentials,
-} from "../stores/auth/types";
+import { loginFailure, loginSuccess } from "../stores/auth/authSlice";
+import type { RegisterCredentials } from "../stores/auth/types";
 import { fetchUserInfo } from "../stores/infoSlice";
 import type { AppDispatch } from "../stores/store";
 
@@ -70,6 +63,7 @@ export const authService = {
       const { error: profileError } = await supabase.from("profiles").upsert({
         id: authData.user.id,
         email: credentials.email,
+        username: credentials.username,
         role: credentials.role,
         updated_at: new Date().toISOString(),
       });
@@ -81,6 +75,7 @@ export const authService = {
         payload: {
           id: authData.user.id,
           email: credentials.email,
+          username: credentials.username,
           role: credentials.role,
         },
       });
@@ -114,7 +109,7 @@ export const authService = {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("role, email")
+        .select("role, email, username")
         .eq("id", data.session.user.id)
         .single();
 
@@ -128,6 +123,7 @@ export const authService = {
         payload: {
           id: data.session.user.id,
           email: profile.email,
+          username: profile.username,
           role: profile.role,
         },
       });
