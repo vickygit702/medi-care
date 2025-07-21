@@ -2,7 +2,7 @@ import { useSelector } from "react-redux";
 import { Card } from "../../components/ui/Card";
 import { User } from "lucide-react";
 import type { RootState } from "../../stores/store";
-import NavigationSystem from "../../components/NavigationSystem";
+import NavigationSystem from "../../components/navigationsystem/NavigationSystem";
 import { useEffect, useState } from "react";
 
 const Dashboard = () => {
